@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as f
+import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 import random
@@ -32,7 +32,7 @@ class QNetwork(nn.Module):
         self.fc3 = nn.Linear(128,action_size)
 
     def forward(self,state):
-        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         return self.fc3(x)
 
@@ -67,24 +67,24 @@ class DQNAgent:
         with torch.no_grad():
             q_values = self.model(state_tensor)
 
-        return torch.argmax(q_values).items()
+        return torch.argmax(q_values).item()
 
     def learn(self):
 
         if len(self.memory)< self.batch_size:
             return
 
-        states, action, rewards, next_states, dones = self.memory.sample(self.batch_size)
+        states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)
 
         states = torch.FloatTensor(states)
-        actions = torch.FloatTensor(actions).unsqueeze(1)
+        actions = torch.LongTensor(actions).unsqueeze(1)
         rewards = torch.FloatTensor(rewards).unsqueeze(1)
         next_states = torch.FloatTensor(next_states)
         dones = torch.FloatTensor(dones).unsqueeze(1)
 
         current_q_values = self.model(states).gather(1,actions)
 
-        witrh torch,no_grad():
+        with torch.no_grad():
             max_next_q_values = self.model(next_states).max(1)[0].unsqueeze(1)
 
             target_q_values = rewards + (self.gamma*max_next_q_values*(1-dones))
@@ -93,6 +93,8 @@ class DQNAgent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+        return loss.item()
 
 
     def decay_epsilon(self):

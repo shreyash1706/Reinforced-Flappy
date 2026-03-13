@@ -195,21 +195,23 @@ class FlappyEnv:
         # Handle endless ground scrolling
         if is_off_screen(self.ground_group.sprites()[0]):
             self.ground_group.remove(self.ground_group.sprites()[0])
-            new_ground = Ground(GROUND_WIDHT - 20)
+            new_ground = Ground(GROUND_WIDTH - 20)
             self.ground_group.add(new_ground)
 
         # Handle endless pipe spawning
         if is_off_screen(self.pipe_group.sprites()[0]):
             self.pipe_group.remove(self.pipe_group.sprites()[0])
             self.pipe_group.remove(self.pipe_group.sprites()[0]) # Remove both top and bottom
-            pipes = get_random_pipes(SCREEN_WIDHT * 2)
+            pipes = get_random_pipes(SCREEN_WIDTH * 2)
             self.pipe_group.add(pipes[0])
             self.pipe_group.add(pipes[1])
         
         reward =0.1
         done=False
 
-        if (pygame.sprite.groupcollide(self.bird_group, self.ground_group, False, False, pygame.sprite.collide_mask) or pygame.sprite.groupcollide(self.bird_group, self.pipe_group, False, False, pygame.sprite.collide_mask)):
+        if (pygame.sprite.groupcollide(self.bird_group, self.ground_group, False, False, pygame.sprite.collide_mask) or 
+            pygame.sprite.groupcollide(self.bird_group, self.pipe_group, False, False, pygame.sprite.collide_mask) or
+            self.bird.rect[1] < 0):
             reward =-100
             done = True
 
