@@ -49,7 +49,7 @@ class DQNAgent:
         # Epsilon-greedy exploration (Controls randomness)
         self.epsilon = 1.0          # 1.0 means 100% random actions at the start
         self.epsilon_min = 0.01     # Lowest randomness allowed (1%)
-        self.epsilon_decay = 0.995  # How fast it stops being random per episode
+        self.epsilon_decay = 0.999  # How fast it stops being random per episode
         
         # Initialize the Network and Optimizer
         self.model = QNetwork(state_size, action_size)
