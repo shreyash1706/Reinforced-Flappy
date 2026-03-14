@@ -40,6 +40,8 @@ class DQNAgent:
     def __init__(self, state_size=5, action_size=2):
         self.state_size = state_size
         self.action_size = action_size
+        self.target_update_freq = 1000
+        self.learn_step_counter = 0
         
         # Hyperparameters (The dials you can tune later)
         self.gamma = 0.99           # How much it cares about future rewards
@@ -53,6 +55,9 @@ class DQNAgent:
         
         # Initialize the Network and Optimizer
         self.model = QNetwork(state_size, action_size)
+        self.target_model = QNetwork(state_size,action_size)
+        self.target_model.load_state_dict(self.model.state_dict())
+        self.target_model.eval()
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss() # Mean Squared Error
         
@@ -85,7 +90,7 @@ class DQNAgent:
         current_q_values = self.model(states).gather(1,actions)
 
         with torch.no_grad():
-            max_next_q_values = self.model(next_states).max(1)[0].unsqueeze(1)
+            max_next_q_values = self.target_model(next_states).max(1)[0].unsqueeze(1)
 
             target_q_values = rewards + (self.gamma*max_next_q_values*(1-dones))
 
@@ -93,6 +98,10 @@ class DQNAgent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+        self.learn_step_counter += 1
+        if self.learn_step_counter % self.target_update_freq == 0:
+            self.target_model.load_state_dict(self.model.state_dict())
 
         return loss.item()
 
